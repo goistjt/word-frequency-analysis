@@ -19,12 +19,11 @@ def get_alpha(string: str) -> str:
     Removes all non-alpha characters from the input
     """
     non_alpha_pattern = r"[^a-zA-Z ]"
-    return re.sub(pattern=non_alpha_pattern, repl='', string=string)
+    return re.sub(pattern=non_alpha_pattern, repl='', string=string).split()
 
-def get_word_counts(string: str) -> Dict[str, int]:
-    split_words = string.split()
+def get_word_counts(word_list: List[str]) -> Dict[str, int]:
     counts = {}
-    for word in split_words:
+    for word in word_list:
         old_value = counts.get(word, 0)
         counts[word] = old_value + 1
     return counts
@@ -40,10 +39,8 @@ def get_stopwords(stopword_path: str) -> List[str]:
     file_content = read_file(stopword_path)
     return file_content.split()
 
-def remove_words(string: str, to_remove: List[str]) -> str:
-    removal_join = "|".join(to_remove)
-    removal_pattern = f"({removal_join})"
-    return re.sub(pattern=removal_pattern, repl='', string=string) 
+def remove_words(word_list: List[str], to_remove: List[str]) -> List[str]:
+    return [word for word in word_list if word not in to_remove] 
 
 @click.group()
 def cli():
@@ -57,8 +54,8 @@ def word_count(filepath: str, stopword_path: Optional[str]):
     if stopword_path:
         stopwords = get_stopwords(stopword_path)
     file_contents = read_file(filepath)
-    alpha_content = get_alpha(file_contents)
-    no_stopwords = remove_words(alpha_content, stopwords)
+    word_list = get_alpha(file_contents)
+    no_stopwords = remove_words(word_list, stopwords)
     word_counts = get_word_counts(no_stopwords)
     top_words = get_top_words(word_counts)
     click.echo(top_words)
