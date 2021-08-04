@@ -1,9 +1,9 @@
 import click
 import re
-from typing import List, Dict
+from typing import List, Dict, Optional
 from functools import reduce
+from pprint import pprint
 
-from click.core import V
 
 def read_file(filepath: str) -> str:
     """
@@ -36,16 +36,30 @@ def get_top_words(word_counts: Dict[str, int], top: int = 25) -> Dict[str, int]:
         for word, count in top_words
     }
 
+def get_stopwords(stopword_path: str) -> List[str]:
+    file_content = read_file(stopword_path)
+    return file_content.split()
+
+def remove_words(string: str, to_remove: List[str]) -> str:
+    removal_join = "|".join(to_remove)
+    removal_pattern = f"({removal_join})"
+    return re.sub(pattern=removal_pattern, repl='', string=string) 
+
 @click.group()
 def cli():
     pass
 
 @click.command()
 @click.option("--filepath", help="Filepath to count words from", required=True)
-def word_count(filepath: str):
+@click.option("--stopword-path", help="Filepath containing list of stopwords")
+def word_count(filepath: str, stopword_path: Optional[str]):
+    stopwords = []
+    if stopword_path:
+        stopwords = get_stopwords(stopword_path)
     file_contents = read_file(filepath)
     alpha_content = get_alpha(file_contents)
-    word_counts = get_word_counts(alpha_content)
+    no_stopwords = remove_words(alpha_content, stopwords)
+    word_counts = get_word_counts(no_stopwords)
     top_words = get_top_words(word_counts)
     click.echo(top_words)
 
