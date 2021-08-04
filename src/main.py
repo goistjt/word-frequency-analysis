@@ -14,14 +14,17 @@ def read_file(filepath: str) -> str:
     file.close()
     return content
 
-def get_alpha(string: str) -> str:
+def get_word_list(string: str) -> str:
     """
-    Removes all non-alpha characters from the input
+    Removes all non-alpha characters from the input and returns the list of resulting strings
     """
     non_alpha_pattern = r"[^a-zA-Z ]"
     return re.sub(pattern=non_alpha_pattern, repl='', string=string).split()
 
 def get_word_counts(word_list: List[str]) -> Dict[str, int]:
+    """
+    Builds a map of word->count
+    """
     counts = {}
     for word in word_list:
         old_value = counts.get(word, 0)
@@ -29,6 +32,9 @@ def get_word_counts(word_list: List[str]) -> Dict[str, int]:
     return counts
 
 def get_top_words(word_counts: Dict[str, int], top: int = 25) -> Dict[str, int]:
+    """
+    Sorts the word_counts dictionary in descending order by value, and returns top items
+    """
     top_words = sorted(word_counts.items(), key=lambda x: x[1], reverse=True)[:top]
     return {
         word: count
@@ -36,11 +42,20 @@ def get_top_words(word_counts: Dict[str, int], top: int = 25) -> Dict[str, int]:
     }
 
 def get_stopwords(stopword_path: str) -> List[str]:
+    """
+    Extracts the stopwords from stopword_path and returns them as a list
+    """
     file_content = read_file(stopword_path)
     return file_content.split()
 
-def remove_words(word_list: List[str], to_remove: List[str]) -> List[str]:
-    return [word for word in word_list if word not in to_remove] 
+def remove_words_from_count(word_count: Dict[str, int], to_remove: List[str]) -> Dict[str, int]:
+    """
+    Removes all strings in to_remove from the word_count
+    """
+    copy_count = {**word_count}
+    for removal in to_remove:
+        copy_count.pop(removal, None)
+    return copy_count
 
 @click.group()
 def cli():
@@ -54,10 +69,10 @@ def word_count(filepath: str, stopword_path: Optional[str]):
     if stopword_path:
         stopwords = get_stopwords(stopword_path)
     file_contents = read_file(filepath)
-    word_list = get_alpha(file_contents)
-    no_stopwords = remove_words(word_list, stopwords)
-    word_counts = get_word_counts(no_stopwords)
-    top_words = get_top_words(word_counts)
+    word_list = get_word_list(file_contents)
+    word_counts = get_word_counts(word_list)
+    word_count_without_stops = remove_words_from_count(word_counts, stopwords)
+    top_words = get_top_words(word_count_without_stops)
     click.echo(top_words)
 
 if __name__ == "__main__":
