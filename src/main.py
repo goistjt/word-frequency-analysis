@@ -97,7 +97,7 @@ def word_count(filepath: str, stopword_path: Optional[str], word_stems: bool = F
         word_list = normalize_word_tense(word_list)
     word_counts = get_word_counts(word_list)
     top_words = get_top_words(word_counts)
-    pprint(top_words)
+    pprint(top_words, sort_dicts=False)
 
 if __name__ == "__main__":
     cli.add_command(word_count)
